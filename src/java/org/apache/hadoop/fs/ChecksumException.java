@@ -20,7 +20,7 @@ import java.io.IOException;
 
 /** Thrown for checksum errors. */
 public class ChecksumException extends IOException {
-  public ChecksumException(String description) {
-    super(description);
-  }
+    public ChecksumException(String description) {
+        super(description);
+    }
 }
