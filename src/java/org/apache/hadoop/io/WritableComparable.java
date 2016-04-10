@@ -16,7 +16,8 @@
 
 package org.apache.hadoop.io;
 
-/** An interface which extends both {@link Writable} and {@link Comparable}.
+/**
+ * An interface which extends both {@link Writable} and {@link Comparable}.
  *
  * @author Doug Cutting
  */

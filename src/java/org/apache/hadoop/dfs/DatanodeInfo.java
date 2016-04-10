@@ -15,57 +15,72 @@
  */
 package org.apache.hadoop.dfs;
 
-import org.apache.hadoop.io.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.TreeSet;
 
-import java.io.*;
-import java.util.*;
+import org.apache.hadoop.io.UTF8;
+import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.io.WritableFactories;
+import org.apache.hadoop.io.WritableFactory;
 
 /**************************************************
- * DatanodeInfo tracks stats on a given DataNode,
- * such as available storage capacity, last update
+ * DatanodeInfo tracks stats on a given DataNode, such as available storage capacity, last update
  * time, etc.
  *
  * @author Mike Cafarella
  **************************************************/
 class DatanodeInfo implements Writable, Comparable {
-
+    
     static {                                      // register a ctor
-      WritableFactories.setFactory
-        (DatanodeInfo.class,
-         new WritableFactory() {
-           public Writable newInstance() { return new DatanodeInfo(); }
-         });
+        WritableFactories.setFactory(DatanodeInfo.class,
+                                     new WritableFactory() {
+                                         public Writable newInstance() {
+                                             return new DatanodeInfo();
+                                         }
+                                     });
     }
-
-    private UTF8 name;
-    private long capacityBytes, remainingBytes, lastUpdate;
+    
+    private UTF8             name;
+    private long             capacityBytes, remainingBytes, lastUpdate;
     private volatile TreeSet blocks;
-
-    /** Create an empty DatanodeInfo.
+    
+    /**
+     * Create an empty DatanodeInfo.
      */
     public DatanodeInfo() {
-        this(new UTF8(), 0, 0);
+        this(new UTF8(),
+             0,
+             0);
     }
-
-   /**
-    * @param name hostname:portNumber as UTF8 object.
-    */
+    
+    /**
+     * @param name
+     *            hostname:portNumber as UTF8 object.
+     */
     public DatanodeInfo(UTF8 name) {
         this.name = name;
         this.blocks = new TreeSet();
-        updateHeartbeat(0, 0);        
+        updateHeartbeat(0,
+                        0);
     }
-
-   /**
-    * @param name hostname:portNumber as UTF8 object.
-    */
-    public DatanodeInfo(UTF8 name, long capacity, long remaining) {
+    
+    /**
+     * @param name
+     *            hostname:portNumber as UTF8 object.
+     */
+    public DatanodeInfo(UTF8 name,
+                        long capacity,
+                        long remaining) {
         this.name = name;
         this.blocks = new TreeSet();
-        updateHeartbeat(capacity, remaining);
+        updateHeartbeat(capacity,
+                        remaining);
     }
-
-   /**
+    
+    /**
     */
     public void updateBlocks(Block newBlocks[]) {
         blocks.clear();
@@ -73,28 +88,29 @@ class DatanodeInfo implements Writable, Comparable {
             blocks.add(newBlocks[i]);
         }
     }
-
-   /**
+    
+    /**
     */
     public void addBlock(Block b) {
         blocks.add(b);
     }
-
+    
     /**
      */
-    public void updateHeartbeat(long capacity, long remaining) {
+    public void updateHeartbeat(long capacity,
+                                long remaining) {
         this.capacityBytes = capacity;
         this.remainingBytes = remaining;
         this.lastUpdate = System.currentTimeMillis();
     }
-
+    
     /**
      * @return hostname:portNumber as UTF8 object.
      */
     public UTF8 getName() {
         return name;
     }
-
+    
     /**
      * @return hostname and no :portNumber as UTF8 object.
      */
@@ -104,41 +120,49 @@ class DatanodeInfo implements Writable, Comparable {
         if (colon < 0) {
             return name;
         } else {
-            return new UTF8(nameStr.substring(0, colon));
+            return new UTF8(nameStr.substring(0,
+                                              colon));
         }
     }
+    
     public String toString() {
         return name.toString();
     }
+    
     public Block[] getBlocks() {
         return (Block[]) blocks.toArray(new Block[blocks.size()]);
     }
+    
     public Iterator getBlockIterator() {
         return blocks.iterator();
     }
+    
     public long getCapacity() {
         return capacityBytes;
     }
+    
     public long getRemaining() {
         return remainingBytes;
     }
+    
     public long lastUpdate() {
         return lastUpdate;
     }
-
-  /** Comparable.
-   * Basis of compare is the UTF8 name (host:portNumber) only.
-   * @param o
-   * @return as specified by Comparable.
-   */
+    
+    /**
+     * Comparable. Basis of compare is the UTF8 name (host:portNumber) only.
+     * 
+     * @param o
+     * @return as specified by Comparable.
+     */
     public int compareTo(Object o) {
         DatanodeInfo d = (DatanodeInfo) o;
         return name.compareTo(d.getName());
     }
-
-    /////////////////////////////////////////////////
+    
+    // ///////////////////////////////////////////////
     // Writable
-    /////////////////////////////////////////////////
+    // ///////////////////////////////////////////////
     /**
      */
     public void write(DataOutput out) throws IOException {
@@ -146,15 +170,13 @@ class DatanodeInfo implements Writable, Comparable {
         out.writeLong(capacityBytes);
         out.writeLong(remainingBytes);
         out.writeLong(lastUpdate);
-
+        
         /**
-        out.writeInt(blocks.length);
-        for (int i = 0; i < blocks.length; i++) {
-            blocks[i].write(out);
-        }
-        **/
+         * out.writeInt(blocks.length); for (int i = 0; i < blocks.length; i++) {
+         * blocks[i].write(out); }
+         **/
     }
-
+    
     /**
      */
     public void readFields(DataInput in) throws IOException {
@@ -163,15 +185,10 @@ class DatanodeInfo implements Writable, Comparable {
         this.capacityBytes = in.readLong();
         this.remainingBytes = in.readLong();
         this.lastUpdate = in.readLong();
-
+        
         /**
-        int numBlocks = in.readInt();
-        this.blocks = new Block[numBlocks];
-        for (int i = 0; i < blocks.length; i++) {
-            blocks[i] = new Block();
-            blocks[i].readFields(in);
-        }
-        **/
+         * int numBlocks = in.readInt(); this.blocks = new Block[numBlocks]; for (int i = 0; i <
+         * blocks.length; i++) { blocks[i] = new Block(); blocks[i].readFields(in); }
+         **/
     }
 }
-
